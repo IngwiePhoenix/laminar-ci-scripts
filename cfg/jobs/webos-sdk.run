@@ -1,0 +1,31 @@
+#!/bin/bash -ex
+
+if [ ! -d "$WORKSPACE/.git" ]; then
+  git clone https://github.com/webosbrew/native-toolchain.git $WORKSPACE
+else
+  # TODO(IP): Utilize parameters to check out specific branches/commits!
+  pushd $WORKSPACE
+  git pull
+  popd
+fi
+
+export CC=gcc
+export CXX=g++
+export LANG=en_US.UTF-8
+export SDKNAME=arm-webos-linux-gnueabi_sdk-buildroot
+
+# Configure
+cmake $WORKSPACE -DCMAKE_INSTALL_PREFIX=/opt/$SDKNAME
+
+# Build
+cmake --build . 
+
+# Don't install, but bundle.
+tar cvfz $ARCHIVE/$SDKNAME.tar.gz arm-webos-linux-gnueabi_sdk-buildroot
+
+# But actually also install for this local system.
+rm -rvf /opt/$SDKNAME
+make install
+
+# TODO(IP): Should trigger future webos builds?
+# NOTE(IP): Need webos contexts.
