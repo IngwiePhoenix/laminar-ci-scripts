@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+set -ex
+
+GIT_ARGS=
+if [ ! -z "$branch" ]; then
+  GIT_ARGS="-depth=1 -b $branch"
+fi
+
+git clone $GIT_ARGS https://git.v0l.io/Kieran/snort.git .
+
+if [ ! -z "$rev" ]; then
+  git reset --hard $rev
+fi
+
+# Snort build
+export YARN_CACHE_FOLDER=/usb/yarn-cache
+yarn
+yarn build
+
+# Packaging
+cd packages/app/build
+tar cvfz $ARCHIVE/snort-$(git describe --tags).tar.gz .
+
+# Deploy
+# TODO(IP): I don't want to expose my SSH keys to the CD user.
+#           so how do I deploy safely...?
